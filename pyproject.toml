@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wsl-web-auth-bridge-browser"
+version = "0.1.0"
+description = "Forward localhost OAuth callbacks from Windows browser to WSL listeners"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "mackat" }]
+keywords = ["wsl", "oauth", "localhost", "browser-auth"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: System :: Networking",
+]
+dependencies = []
+
+[project.optional-dependencies]
+windows = []
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+wsl-web-auth-bridge = "wsl_web_auth_bridge.cli:serve_main"
+wsl-web-auth-bridge-client = "wsl_web_auth_bridge.cli:client_main"
+wsl-web-auth-bridge-browser = "wsl_web_auth_bridge.client.browser_shim:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
