@@ -1,0 +1,20 @@
+[project]
+name = "dbt-mock"
+version = "0.1.0"
+description = "dbt + Snowflake externalbrowser smoke project with optional WSL web-auth bridge (uv)"
+requires-python = ">=3.10"
+dependencies = [
+    "dbt-snowflake>=1.10,<2",
+]
+
+[project.optional-dependencies]
+bridge = ["wsl-web-auth-bridge-browser"]
+
+[tool.uv.sources]
+wsl-web-auth-bridge-browser = { path = "../..", editable = true }
+
+[dependency-groups]
+bridge = ["wsl-web-auth-bridge-browser"]
+
+[tool.uv]
+default-groups = []

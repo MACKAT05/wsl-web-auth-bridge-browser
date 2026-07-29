@@ -34,12 +34,14 @@ class SessionRequest:
     port: int
     url: str
     wsl_host: str | None = None
+    forward: bool = True
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "port": self.port,
             "url": self.url,
             "wsl_host": self.wsl_host,
+            "forward": self.forward,
         }
 
     @classmethod
@@ -48,6 +50,7 @@ class SessionRequest:
             port=int(data["port"]),
             url=str(data["url"]),
             wsl_host=(str(data["wsl_host"]) if data.get("wsl_host") else None),
+            forward=bool(data.get("forward", True)),
         )
 
 
@@ -60,6 +63,7 @@ class SessionState:
     status: SessionStatus = SessionStatus.LISTENING
     error: str | None = None
     bytes_forwarded: int = 0
+    tcp_forward: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -70,6 +74,7 @@ class SessionState:
             "status": self.status.value,
             "error": self.error,
             "bytes_forwarded": self.bytes_forwarded,
+            "tcp_forward": self.tcp_forward,
         }
 
 

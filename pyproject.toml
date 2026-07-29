@@ -7,10 +7,10 @@ name = "wsl-web-auth-bridge-browser"
 version = "0.1.0"
 description = "Forward localhost OAuth callbacks from Windows browser to WSL listeners"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "mackat" }]
-keywords = ["wsl", "oauth", "localhost", "browser-auth"]
+keywords = ["wsl", "oauth", "localhost", "browser-auth", "uv"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
@@ -27,11 +27,22 @@ dependencies = []
 [project.optional-dependencies]
 windows = []
 dev = ["pytest>=8.0"]
+# Optional extra for UV/pip consumers: uv sync --extra bridge
+bridge = []
 
 [project.scripts]
 wsl-web-auth-bridge = "wsl_web_auth_bridge.cli:serve_main"
 wsl-web-auth-bridge-client = "wsl_web_auth_bridge.cli:client_main"
 wsl-web-auth-bridge-browser = "wsl_web_auth_bridge.client.browser_shim:main"
+wsl-web-auth-bridge-activate = "wsl_web_auth_bridge.client.activate:activate_main"
+wsl-web-auth-bridge-env = "wsl_web_auth_bridge.client.activate:env_main"
+wsl-web-auth-bridge-exec = "wsl_web_auth_bridge.client.uv_extra:exec_main"
+wsl-web-auth-bridge-dbt = "wsl_web_auth_bridge.client.uv_extra:dbt_main"
+wsl-web-auth-bridge-snow = "wsl_web_auth_bridge.client.uv_extra:snow_main"
+wsl-web-auth-bridge-schemachange = "wsl_web_auth_bridge.client.uv_extra:schemachange_main"
+
+[tool.uv]
+package = true
 
 [tool.setuptools.packages.find]
 where = ["src"]

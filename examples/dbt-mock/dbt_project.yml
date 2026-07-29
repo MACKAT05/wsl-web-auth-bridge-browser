@@ -1,0 +1,10 @@
+name: bridge_smoke
+version: 1.0.0
+config-version: 2
+profile: snowflake
+
+model-paths: ["models"]
+
+models:
+  bridge_smoke:
+    +materialized: view

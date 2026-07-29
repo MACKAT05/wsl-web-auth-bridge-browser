@@ -16,14 +16,14 @@ def main() -> int:
         return 1
 
     port = default_callback_port()
-    wsl_host = wsl_ip_for_forward()
 
     try:
         create_session(
             SessionRequest(
                 port=port,
                 url=url,
-                wsl_host=wsl_host,
+                wsl_host=wsl_ip_for_forward(),
+                forward=True,
             )
         )
     except BridgeError as exc:

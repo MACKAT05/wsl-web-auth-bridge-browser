@@ -33,8 +33,24 @@ async def relay_tcp(
     target_host: str,
     target_port: int,
 ) -> int:
-    remote_reader, remote_writer = await asyncio.open_connection(target_host, target_port)
     client_addr = client_writer.get_extra_info("peername")
+    try:
+        remote_reader, remote_writer = await asyncio.open_connection(target_host, target_port)
+    except OSError as exc:
+        logger.error(
+            "Callback forward failed %s -> %s:%s: %s",
+            client_addr,
+            target_host,
+            target_port,
+            exc,
+        )
+        response = b"HTTP/1.1 502 Bad Gateway\r\nContent-Length: 0\r\n\r\n"
+        client_writer.write(response)
+        await client_writer.drain()
+        client_writer.close()
+        await client_writer.wait_closed()
+        return 0
+
     logger.info("Callback connection from %s → %s:%s", client_addr, target_host, target_port)
 
     upstream = asyncio.create_task(pipe(client_reader, remote_writer, "client→wsl"))

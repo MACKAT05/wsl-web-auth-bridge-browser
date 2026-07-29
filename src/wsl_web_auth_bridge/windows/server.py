@@ -15,6 +15,7 @@ from wsl_web_auth_bridge.config import ensure_windows_config
 from wsl_web_auth_bridge.protocol import SessionRequest, SessionState, SessionStatus
 from wsl_web_auth_bridge.windows.browser import open_url
 from wsl_web_auth_bridge.windows.forwarder import run_listener
+from wsl_web_auth_bridge.windows.network import should_tcp_forward
 
 logger = logging.getLogger(__name__)
 
@@ -38,19 +39,39 @@ class SessionManager:
         )
         with self._lock:
             self._sessions[session_id] = state
-        self._start_forwarder(state)
+        use_forward = should_tcp_forward(wsl_host, forward_requested=request.forward)
+        state.tcp_forward = use_forward
+        if use_forward:
+            self._stop_forwarders_on_port(state.port, except_session=session_id)
+            self._start_forwarder(state)
+        elif request.forward:
+            logger.info(
+                "Browser-only session on port %s (skipping TCP forward; Windows cannot reach %s)",
+                state.port,
+                wsl_host,
+            )
         try:
             open_url(request.url)
         except Exception as exc:
             state.status = SessionStatus.FAILED
             state.error = str(exc)
-            self._stop_forwarder(session_id)
+            if use_forward:
+                self._stop_forwarder(session_id)
             raise
         return state
 
     def get(self, session_id: str) -> SessionState | None:
         with self._lock:
             return self._sessions.get(session_id)
+
+    def _stop_forwarders_on_port(self, port: int, *, except_session: str | None = None) -> None:
+        with self._lock:
+            session_ids = [
+                sid for sid, state in self._sessions.items()
+                if state.port == port and sid != except_session
+            ]
+        for session_id in session_ids:
+            self._stop_forwarder(session_id)
 
     def _start_forwarder(self, state: SessionState) -> None:
         stop_event = asyncio.Event()

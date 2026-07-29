@@ -6,13 +6,21 @@ import subprocess
 import sys
 
 from wsl_web_auth_bridge.client.api import BridgeError, health
-from wsl_web_auth_bridge.client.discover import callback_port_env, is_wsl, windows_host_ip
+from wsl_web_auth_bridge.client.discover import (
+    callback_port_env,
+    is_wsl,
+    localhost_is_shared,
+    needs_tcp_forward,
+    windows_host_ip,
+)
 
 
 def run_doctor() -> int:
     print("wsl-web-auth-bridge doctor")
     print(f"  WSL detected: {is_wsl()}")
     print(f"  Windows host IP: {windows_host_ip()}")
+    print(f"  Localhost shared: {localhost_is_shared()}")
+    print(f"  TCP forward (client hint): {needs_tcp_forward()}")
     try:
         info = health()
         print(f"  Bridge health: OK ({info})")
