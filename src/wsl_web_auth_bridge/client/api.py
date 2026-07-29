@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import urllib.error
 import urllib.request
+from pathlib import Path
 from typing import Any
 
 from wsl_web_auth_bridge.client.discover import is_wsl
@@ -14,6 +15,21 @@ from wsl_web_auth_bridge.protocol import SessionRequest
 
 class BridgeError(RuntimeError):
     pass
+
+
+def _curl_exe() -> str | None:
+    found = shutil.which("curl.exe")
+    if found:
+        return found
+    if not is_wsl():
+        return None
+    for candidate in (
+        Path("/mnt/c/Windows/System32/curl.exe"),
+        Path("/mnt/c/WINDOWS/system32/curl.exe"),
+    ):
+        if candidate.is_file():
+            return str(candidate)
+    return None
 
 
 def _request(
@@ -37,9 +53,10 @@ def _request(
         detail = exc.read().decode("utf-8", errors="replace")
         raise BridgeError(f"Bridge HTTP {exc.code}: {detail}") from exc
     except urllib.error.URLError as exc:
-        if is_wsl() and shutil.which("curl.exe"):
+        curl = _curl_exe()
+        if is_wsl() and curl:
             try:
-                return _request_via_curl_exe(method, url, headers, data, timeout)
+                return _request_via_curl_exe(method, url, headers, data, timeout, curl)
             except BridgeError:
                 pass
         raise BridgeError(
@@ -54,8 +71,9 @@ def _request_via_curl_exe(
     headers: dict[str, str],
     data: bytes | None,
     timeout: float,
+    curl: str,
 ) -> dict[str, Any]:
-    cmd = ["curl.exe", "-sS", "-m", str(int(timeout)), "-X", method, url]
+    cmd = [curl, "-sS", "-m", str(int(timeout)), "-X", method, url]
     for key, value in headers.items():
         cmd.extend(["-H", f"{key}: {value}"])
     if data is not None:
